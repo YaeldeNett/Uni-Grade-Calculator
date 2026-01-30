@@ -1,0 +1,7 @@
+# Core dependencies (tkinter is included with Python)
+
+# Optional: Modern themed UI components
+ttkbootstrap>=1.10.0
+
+# Optional: Progress visualization graph
+matplotlib>=3.5.0

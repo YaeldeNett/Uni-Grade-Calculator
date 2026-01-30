@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build artifacts
+build/
+*.spec
+
+# Distribution / packaging (BUT keep the installer!)
+# We ignore everything in dist EXCEPT .exe files
+dist/*
+!dist/*.exe
+
+# User data - don't upload personal save files
+saves/
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE / Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.write_test
