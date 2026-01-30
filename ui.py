@@ -6,7 +6,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog
 from typing import Optional, List
 
-                     
 USE_TTKB = False
 try:
     import ttkbootstrap as tb
@@ -25,7 +24,6 @@ except Exception:
 from models import GradeBook, Assessment
 from calculations import compute_stats
 
-                     
 # Creates the main window, using ttkbootstrap if available
 def create_root():
     if USE_TTKB:
@@ -34,7 +32,6 @@ def create_root():
         root = tk.Tk()
     return root
 
-                             
 # Main application class handling UI and logic
 class App:
     # Initializes the application UI and state
@@ -44,7 +41,6 @@ class App:
         self.pass_mark = tk.DoubleVar(value=50.0)
         self.current_filename = None
 
-                                                    
         # Define paths for saves and resources
         if getattr(sys, 'frozen', False):
             # If the application is run as a bundle (PyInstaller)
@@ -78,75 +74,55 @@ class App:
                 pass
 
         if USE_TTKB:
-                                           
             self.root.title("Uni Grade Calculator")
         else:
             style = ttk.Style()
-                                                    
             if "clam" in style.theme_names():
                 style.theme_use("clam")
             self.root.title("Uni Grade Calculator")
-        
-                              
-                  
+
         try:
             # Icons might be bundled, so look in resource_dir
             icon_path_png = os.path.join(resource_dir, "icon.png")
             icon_path_ico = os.path.join(resource_dir, "icon.ico")
-            
-                                                                                             
+
             if os.path.exists(icon_path_ico):
                 self.root.iconbitmap(icon_path_ico)
-            
-                                                                   
+
             if os.path.exists(icon_path_png):
                 self.app_icon = tk.PhotoImage(file=icon_path_png)
                 self.root.wm_iconphoto(True, self.app_icon)
             elif not os.path.exists(icon_path_ico):
-                           
                 self.blank_icon = tk.PhotoImage(width=1, height=1)
                 self.root.wm_iconphoto(True, self.blank_icon)
         except Exception:
             pass
 
-                              
         self.pad = {"padx": 8, "pady": 6}
 
-                          
         if USE_TTKB:
             paned = tb.Panedwindow(self.root, orient="horizontal")
         else:
             paned = ttk.Panedwindow(self.root, orient="horizontal")
         paned.pack(fill="both", expand=True)
 
-                                   
         left = ttk.Frame(paned)
         paned.add(left, weight=1)
 
-                               
         right = ttk.Frame(paned)
         paned.add(right, weight=3)
 
-                                    
         hdr = ttk.Frame(left)
         hdr.pack(fill="x", **self.pad)
 
-                                                             
         self.file_var = tk.StringVar()
         self.rename_var = tk.StringVar()
-        
-                                                                
+
         self.file_ctl_frame = ttk.Frame(hdr)
-        
-                                                          
-                                             
-                                 
-                                 
 
         if USE_TTKB:
             self.file_combo = tb.Combobox(self.file_ctl_frame, textvariable=self.file_var, state="readonly", width=1)
             self.file_entry = tb.Entry(self.file_ctl_frame, textvariable=self.rename_var, width=1)
-                                            
             self.new_file_btn = tb.Button(hdr, text="+", bootstyle=PRIMARY, command=self.new_file, width=3)
             self.edit_file_btn = tb.Button(hdr, text="Edit", bootstyle=SECONDARY, command=self.toggle_rename_mode)
             self.del_file_btn = tb.Button(hdr, text="Delete", bootstyle=DANGER, command=self.delete_current_file)
@@ -157,34 +133,26 @@ class App:
             self.edit_file_btn = ttk.Button(hdr, text="Edit", command=self.toggle_rename_mode)
             self.del_file_btn = ttk.Button(hdr, text="Delete", command=self.delete_current_file)
 
-                              
-                                                                      
         self.new_file_btn.pack(side="left", padx=2)
-        self.del_file_btn.pack(side="right", padx=2)             
-        self.edit_file_btn.pack(side="right", padx=2)             
-        
-                                                         
+        self.del_file_btn.pack(side="right", padx=2)
+        self.edit_file_btn.pack(side="right", padx=2)
+
         self.file_ctl_frame.pack(side="left", fill="x", expand=True)
-                       
         self.file_combo.pack(side="left", fill="x", expand=True)
         self.file_combo.bind("<<ComboboxSelected>>", self.on_file_selected)
         self.file_entry.bind("<Return>", lambda e: self.confirm_rename())
-        
+
         self.rename_mode = False
-        
-                                        
+
         self.file_delete_confirm_pending = False
         self.file_delete_timer = None
-        
-                               
+
         self.refresh_file_list()
 
-                                                                
         subj_ctl = ttk.Frame(left)
         subj_ctl.pack(fill="x", **self.pad)
 
         if USE_TTKB:
-                           
             ttk.Label(subj_ctl, text="Subjects", font=("", 10, "bold")).pack(side="top", anchor="w", padx=4, pady=(0, 4))
             
             btn_frame = ttk.Frame(subj_ctl)
@@ -193,7 +161,6 @@ class App:
             self.ren_subj_btn = tb.Button(btn_frame, text="Rename", bootstyle=SECONDARY, command=self.start_inline_rename)
             self.del_subj_btn = tb.Button(btn_frame, text="Delete", bootstyle=DANGER, command=self.delete_subject)
         else:
-                           
             ttk.Label(subj_ctl, text="Subjects", font=("", 10, "bold")).pack(side="top", anchor="w", padx=4, pady=(0, 4))
             
             btn_frame = ttk.Frame(subj_ctl)
@@ -202,31 +169,19 @@ class App:
             self.ren_subj_btn = ttk.Button(btn_frame, text="Rename", command=self.start_inline_rename)
             self.del_subj_btn = ttk.Button(btn_frame, text="Delete", command=self.delete_subject)
 
-                                                                                           
-                                                                         
-                                                                           
         self.add_subj_btn.pack(side="left", padx=4, expand=True, fill="x")
         self.ren_subj_btn.pack(side="left", padx=4, expand=True, fill="x")
         self.del_subj_btn.pack(side="left", padx=4, expand=True, fill="x")
-        
-                                   
+
         self.delete_confirm_pending = False
         self.delete_timer = None
-        
-                           
+
         self.inline_entry = None
 
-                         
         self.subject_list = tk.Listbox(left, height=12, exportselection=False)
         self.subject_list.pack(fill="both", expand=True, **self.pad)
         self.subject_list.bind("<<ListboxSelect>>", self.on_subject_select)
 
-                                                      
-                                  
-                                           
-                               
-
-                                     
         topbar = ttk.Frame(right)
         topbar.pack(fill="x", **self.pad)
 
@@ -240,7 +195,6 @@ class App:
         pass_spin.pack(side="left")
         ttk.Label(topbar, text="%").pack(side="left")
 
-                             
         columns = ("name", "kind", "weight", "mark")
         self.tree = ttk.Treeview(right, columns=columns, show="headings", height=12)
         self.tree.heading("name", text="Name")
@@ -254,7 +208,6 @@ class App:
         self.tree.column("mark", width=90, anchor="center")
         self.tree.pack(fill="both", expand=True, **self.pad)
 
-                            
         ab = ttk.Frame(right)
         ab.pack(fill="x", **self.pad)
 
@@ -293,9 +246,6 @@ class App:
         small("Required avg on remaining to pass:", self.var_needed)
         small("Remaining planned weight:", self.var_remaining_weight)
 
-
-
-                       
         self.graph_frame = ttk.LabelFrame(right, text="Progress Overview")
         self.graph_frame.pack(fill="both", expand=False, padx=8, pady=(0,10))
 
@@ -308,35 +258,26 @@ class App:
             self.graph_placeholder = ttk.Label(self.graph_frame, text="Install matplotlib to see the progress graph (pip install matplotlib)")
             self.graph_placeholder.pack(fill="x", padx=8, pady=8)
 
-                             
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
-                                                                      
         self.handle_startup_load()
 
-                                  
     # Handles initial data loading on startup
     def handle_startup_load(self):
-                                        
         self.root.withdraw()
 
         try:
             json_files = glob.glob(os.path.join(self.saves_path, "*.json"))
             
             if not json_files:
-                                                        
                 self.load_dummy_data()
             else:
-                                                              
-                                                               
                 json_files.sort(key=os.path.getmtime, reverse=True)
                 last_file = json_files[0]
                 self.load_custom_file(last_file)
         finally:
-                                                                    
             self.root.deiconify()
 
-                         
     # Loads a specific JSON file into the gradebook
     def load_custom_file(self, filepath):
         try:
@@ -345,20 +286,17 @@ class App:
                 content = f.read().strip()
             
             if not content:
-                                              
                 self.gb.subjects.clear()
             else:
                 self.gb.load_json(content)
                 
             self.current_filename = filepath
             self.refresh_subject_list()
-                                                             
             self.file_var.set(os.path.basename(filepath).replace(".json", ""))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load file '{os.path.basename(filepath)}':\n{e}\nLoading default data.")
             self.load_dummy_data()
 
-                        
     # Creates example data for first-time users
     def load_dummy_data(self):
         if not self.gb.subjects:
@@ -373,23 +311,16 @@ class App:
 
     # Shows dialog to choose from multiple save files
     def ask_user_for_save_file(self, files: List[str]):
-                                                                                      
-                                                                                  
-                                                                                        
-        
-                                           
         file_map = {os.path.basename(f): f for f in files}
-        
+
         dlg = FileSelectionDialog(self.root, list(file_map.keys()))
         self.root.wait_window(dlg.top)
-        
+
         if dlg.selected_filename and dlg.selected_filename in file_map:
             self.load_custom_file(file_map[dlg.selected_filename])
         else:
-                       
             self.load_dummy_data()
 
-                             
     # Updates the list of subjects in the UI
     def refresh_subject_list(self, select: Optional[str] = None):
         self.subject_list.delete(0, tk.END)
@@ -405,7 +336,6 @@ class App:
             self.subject_list.select_clear(0, tk.END)
             self.subject_list.select_set(idx_to_select)
             self.subject_list.activate(idx_to_select)
-                                                                                  
             self.on_subject_select()
         else:
             self.sel_subject_var.set("—")
@@ -413,10 +343,8 @@ class App:
                 self.tree.delete(i)
             self.update_stats_panel(None)
 
-                                           
     # adds a new subject with a unique name
     def add_subject(self):
-                                     
         base = "New Subject"
         name = base
         count = 1
@@ -432,7 +360,6 @@ class App:
             
         self.refresh_subject_list(select=name)
         self.save_file(silent=True)
-                                  
         self.start_inline_rename()
 
     # Starts the inline renaming process for a subject
@@ -442,43 +369,37 @@ class App:
             messagebox.showwarning("No subject", "Select a subject first.")
             return
 
-                                               
         sel = self.subject_list.curselection()
         if not sel: return
         idx = sel[0]
         
         try:
-            bbox = self.subject_list.bbox(idx)                      
+            bbox = self.subject_list.bbox(idx)
             if not bbox: return
         except Exception:
             return
 
         x, y, w, h = bbox
-        
-                                  
+
         if self.inline_entry:
             self.inline_entry.destroy()
-            
-                                                                                
-                                                              
+
         try:
             cur_font = self.subject_list.cget("font")
         except:
             cur_font = ("TkDefaultFont",)
-            
+
         self.inline_entry = tk.Entry(self.subject_list, relief="flat", borderwidth=0, highlightthickness=1, font=cur_font)
-            
-                                                                                   
+
         list_width = self.subject_list.winfo_width()
-        
-        req_h = h                    
-        req_y = y                 
-        
-                                    
+
+        req_h = h
+        req_y = y
+
         req_w = max(list_width - x - 4, 100)
-        
+
         self.inline_entry.place(x=x, y=req_y, width=req_w, height=req_h)
-        self.inline_entry.lift() 
+        self.inline_entry.lift()
         self.inline_entry.insert(0, subj)
         self.inline_entry.select_range(0, tk.END)
         self.inline_entry.focus_set()
@@ -499,7 +420,6 @@ class App:
         try:
             self.gb.rename_subject(old_name, new_name)
         except ValueError as e:
-                                                                  
             messagebox.showerror("Error", str(e))
             self.refresh_subject_list(select=old_name)
             return
@@ -513,7 +433,6 @@ class App:
             self.inline_entry.destroy()
             self.inline_entry = None
 
-                              
     # Deletes the currently selected subject
     def delete_subject(self):
         subj = self.current_subject_title()
@@ -522,13 +441,10 @@ class App:
             return
             
         if not self.delete_confirm_pending:
-                                                  
             self.delete_confirm_pending = True
             self.del_subj_btn.configure(text="Confirm")
-                                        
             self.delete_timer = self.root.after(2000, self.reset_delete_btn)
         else:
-                                          
             self.gb.remove_subject(subj)
             self.refresh_subject_list()
             self.save_file(silent=True)
@@ -549,15 +465,13 @@ class App:
             return None
         return self.subject_list.get(sel[0])
 
-                             
     # Handles subject selection change
     def on_subject_select(self, _evt=None):
         subj = self.current_subject_title()
         if not subj:
             return
-        if subj:                                                                      
+        if subj:
             self.reset_delete_btn()
-                                                
             self.cancel_inline_rename()
         
         self.sel_subject_var.set(subj if subj else "—")
@@ -570,7 +484,6 @@ class App:
         self.update_stats_panel(subj)
         self.render_subject_graph()
 
-                                 
     # Opens dialog to add a new assessment
     def add_assessment_dialog(self):
         subj = self.current_subject_title()
@@ -622,7 +535,6 @@ class App:
             self.on_subject_select()
             self.save_file(silent=True)
 
-                                
     # Updates the statistics panel for a subject
     def update_stats_panel(self, subj_title: Optional[str]):
         if not subj_title:
@@ -657,7 +569,6 @@ class App:
         self.var_remaining_weight.set(f"{stats['remaining_planned_weight']:.2f}%")
         self.render_subject_graph()
 
-                          
     # Draws the progress bar graph
     def render_subject_graph(self):
         subj_title = self.current_subject_title()
@@ -725,26 +636,20 @@ class App:
         fig.tight_layout()
         self.graph_canvas.draw()
 
-                         
     # Handles window closure, ensuring data is saved
     def on_close(self):
-                                                                    
-                                  
         if self.current_filename:
             self.save_file(silent=True)
         self.root.destroy()
 
-                           
     # Creates a new semester file
     def new_file(self):
-                                                     
         if self.current_filename:
             self.save_file(silent=True)
         
         self.gb.subjects.clear()
         self.current_filename = None
         self.refresh_subject_list()
-                                                                              
         base = "Untitled Semester"
         name = base
         count = 1
@@ -754,26 +659,16 @@ class App:
         
         path = os.path.join(self.saves_path, f"{name}.json")
         self.current_filename = path
-        
-                                                     
+
         self.save_file(silent=True)
         self.file_var.set(name)
         self.refresh_file_list()
 
-                        
     # Saves the current gradebook to JSON
     def save_file(self, silent=False) -> bool:
-                                                   
-                                  
-                                                                                   
-                         
-                                                               
         if self.current_filename:
             path = self.current_filename
         else:
-                                                 
-                                    
-                                                               
             self.toggle_rename_mode()
             messagebox.showinfo("Save As", "Please enter a name for this semester in the top bar and click the checkmark.")
             return False
@@ -783,13 +678,9 @@ class App:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(self.gb.as_json())
             if not silent:
-                                          
                 self.refresh_file_list()
                 if self.current_filename:
                     self.file_var.set(os.path.basename(self.current_filename).replace(".json", ""))
-                                                                                       
-                                                   
-                pass 
             return True
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save:\n{e}")
@@ -798,7 +689,6 @@ class App:
     # Updates the file selection dropdown
     def refresh_file_list(self):
         json_files = glob.glob(os.path.join(self.saves_path, "*.json"))
-                     
         names = [os.path.basename(f).replace(".json", "") for f in json_files]
         names.sort(key=str.lower)
         self.file_combo["values"] = names
@@ -807,14 +697,9 @@ class App:
     def on_file_selected(self, event):
         name = self.file_var.get()
         if not name: return
-                   
         path = os.path.join(self.saves_path, f"{name}.json")
         if os.path.exists(path):
-                                                   
-                                                       
-                                                                  
             self.load_custom_file(path)
-                                               
             self.root.focus_set()
             if hasattr(self, 'file_combo'):
                 self.file_combo.selection_clear()
@@ -822,10 +707,8 @@ class App:
     # Toggles the file renaming input field
     def toggle_rename_mode(self):
         if not self.rename_mode:
-                                      
             self.rename_mode = True
-            
-                                                             
+
             current = self.file_var.get()
             if current == "New Semester":
                 self.rename_var.set("")
@@ -835,20 +718,16 @@ class App:
             self.file_combo.pack_forget()
             self.file_entry.pack(side="left", fill="x", expand=True)
             self.file_entry.focus_set()
-                                                  
             self.file_entry.select_range(0, tk.END)
-            
-                                        
+
             self.edit_file_btn.configure(text="Save", command=self.confirm_rename)
             if USE_TTKB:
                 self.edit_file_btn.configure(bootstyle=SUCCESS)
         else:
-                           
             self.rename_mode = False
             self.file_entry.pack_forget()
             self.file_combo.pack(side="left", fill="x", expand=True)
-            
-                           
+
             self.edit_file_btn.configure(text="Edit", command=self.toggle_rename_mode)
             if USE_TTKB:
                 self.edit_file_btn.configure(bootstyle=SECONDARY)
@@ -857,48 +736,37 @@ class App:
     def confirm_rename(self):
         new_name = self.rename_var.get().strip()
         if not new_name:
-                                             
-                                                       
             self.toggle_rename_mode()
             return
 
         new_path = os.path.join(self.saves_path, f"{new_name}.json")
-        
-                         
+
         if os.path.exists(new_path) and (self.current_filename is None or new_path != self.current_filename):
             if not messagebox.askyesno("Overwrite", f"File '{new_name}' already exists. Overwrite?"):
                 return
 
-                                             
         if self.current_filename and os.path.exists(self.current_filename):
             try:
                 os.rename(self.current_filename, new_path)
                 self.current_filename = new_path
                 self.file_var.set(new_name)
                 self.refresh_file_list()
-                
-                           
-                                                                   
-                self.rename_mode = True 
+
+                self.rename_mode = True
                 self.toggle_rename_mode()
-                                                 
                 self.root.focus_set()
                 return
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to rename:\n{e}")
                 return
-        
-                                                                      
+
         self.current_filename = new_path
-                                                
         self.save_file(silent=True)
         self.file_var.set(new_name)
         self.refresh_file_list()
-        
-                   
-        self.rename_mode = True 
+
+        self.rename_mode = True
         self.toggle_rename_mode()
-                                         
         self.root.focus_set()
 
     # Deletes the current file
@@ -921,30 +789,24 @@ class App:
                 json_files = glob.glob(os.path.join(self.saves_path, "*.json"))
                 target_abs = os.path.abspath(target_to_delete)
                 candidates = [f for f in json_files if os.path.abspath(f) != target_abs]
-                
-                                           
+
                 candidates.sort(key=os.path.getmtime, reverse=True)
-                
+
                 if candidates:
-                                                     
                     self.load_custom_file(candidates[0])
                 else:
-                                            
-                                                                                    
-                    self.current_filename = None 
-                    self.new_file()                              
-                
-                                                   
+                    self.current_filename = None
+                    self.new_file()
+
                 if os.path.exists(target_to_delete):
                     os.remove(target_to_delete)
-                
+
                 self.refresh_file_list()
-                
-                                                                       
+
                 if self.current_filename:
                     name = os.path.basename(self.current_filename).replace(".json", "")
                     self.file_var.set(name)
-                
+
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to delete:\n{e}")
     
@@ -956,10 +818,8 @@ class App:
             self.file_delete_timer = None
         self.del_file_btn.configure(text="Delete")
 
-                          
     # Opens file dialog to load a file
     def load_file(self):
-                                             
         path = filedialog.askopenfilename(
             initialdir=self.saves_path,
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
@@ -976,7 +836,6 @@ class App:
             messagebox.showerror("Error", f"Failed to load:\n{e}")
 
 
-                               
 # Dialog for adding or editing an assessment
 class AssessmentDialog:
     # Initializes the assessment dialog
@@ -1033,15 +892,12 @@ class AssessmentDialog:
         self.top.bind("<Escape>", lambda e: cancel_cmd())
 
         name_entry.focus_set()
-        
-                                                
+
         try:
             self.top.update_idletasks()
             w = self.top.winfo_width()
             h = self.top.winfo_height()
-            
-                                                                                 
-                                                   
+
             mx = master.winfo_rootx()
             my = master.winfo_rooty()
             mw = master.winfo_width()
@@ -1052,7 +908,6 @@ class AssessmentDialog:
             
             self.top.geometry(f"+{x}+{y}")
         except Exception:
-                                           
             pass
 
     # Validates input and saves assessment
@@ -1095,7 +950,6 @@ class AssessmentDialog:
         self.result = Assessment(name=name, kind=kind, weight=weight, mark=mark)
         self.top.destroy()
 
-                               
 # Dialog for selecting a save file
 class FileSelectionDialog:
     # Initializes the file selection dialog
@@ -1103,16 +957,13 @@ class FileSelectionDialog:
         self.selected_filename: Optional[str] = None
         self.top = tk.Toplevel(master)
         self.top.title("Select Save File")
-                                                                                           
         self.top.grab_set()
         self.top.resizable(False, False)
-        
-                                   
+
         self.top.geometry("400x300")
 
         ttk.Label(self.top, text="Multiple save files found. Please select one:", font=("", 10)).pack(pady=10)
 
-                           
         frame_list = ttk.Frame(self.top)
         frame_list.pack(fill="both", expand=True, padx=10, pady=5)
         
@@ -1125,14 +976,12 @@ class FileSelectionDialog:
 
         for fname in filenames:
             self.listbox.insert(tk.END, fname)
-        
-                                 
+
         if filenames:
             self.listbox.select_set(0)
 
         self.listbox.bind("<Double-Button-1>", lambda e: self.ok())
 
-                 
         btns = ttk.Frame(self.top)
         btns.pack(pady=10)
 
