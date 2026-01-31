@@ -31,8 +31,8 @@ A desktop application to track and calculate your university grades across multi
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/GradeCalculator.git
-   cd GradeCalculator
+   git clone https://github.com/YOUR_USERNAME/Uni-Grade-Calculator.git
+   cd Uni-Grade-Calculator
    ```
 
 2. Install dependencies:
